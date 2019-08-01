@@ -118,8 +118,26 @@ func TestParseUserAgentString(t *testing.T) {
 		},
 		{
 			"MissingVersion",
-			[]*UserAgentProduct{},
-			true,
+			[]*UserAgentProduct{
+				{Name: "MissingVersion"},
+			},
+			false,
+		},
+		{
+			"One Two (comment) Three/1.0",
+			[]*UserAgentProduct{
+				{Name: "One"},
+				{Name: "Two", Comment: "comment"},
+				{Name: "Three", Version: "1.0"},
+			},
+			false,
+		},
+		{
+			"(Prevx 3.0.5)",
+			[]*UserAgentProduct{
+				{Comment: "Prevx 3.0.5"},
+			},
+			false,
 		},
 	}
 	for i, tc := range testCases {
@@ -136,7 +154,8 @@ func TestParseUserAgentString(t *testing.T) {
 			expectedUA := newUserAgent(tc.useragentProducts)
 
 			if !givenUA.Equal(expectedUA) {
-				t.Fatalf("Unexpected User-Agent.\nExpected: %q\nGiven: %q\n", expectedUA, givenUA)
+				t.Fatalf("Unexpected User-Agent.\nExpected: %s\nGiven: %s\n",
+					expectedUA, givenUA)
 			}
 		})
 	}

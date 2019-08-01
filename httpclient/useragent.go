@@ -61,7 +61,10 @@ func (uap *UserAgentProduct) String() string {
 		b.WriteString(fmt.Sprintf("/%s", uap.Version))
 	}
 	if uap.Comment != "" {
-		b.WriteString(fmt.Sprintf(" (%s)", uap.Comment))
+		if uap.Name != "" {
+			b.WriteString(" ")
+		}
+		b.WriteString(fmt.Sprintf("(%s)", uap.Comment))
 	}
 	return b.String()
 }
@@ -151,8 +154,7 @@ func newUserAgent(products []*UserAgentProduct) *userAgent {
 func ParseUserAgentString(uaString string) ([]*UserAgentProduct, error) {
 	products := make([]*UserAgentProduct, 0)
 
-	// Parse "Product/version (comment)"
-	re := regexp.MustCompile(`([^/]+)/([^\s]+)(\s\([^\)]+\))?`)
+	re := regexp.MustCompile(`(([^/\s\(]+)(/[^\s\(]+)?)?(\s*\([^\)]+\))?`)
 	matches := re.FindAllStringSubmatch(uaString, -1)
 
 	if len(matches) == 0 {
@@ -161,9 +163,9 @@ func ParseUserAgentString(uaString string) ([]*UserAgentProduct, error) {
 
 	for _, match := range matches {
 		products = append(products, &UserAgentProduct{
-			Name:    strings.TrimSpace(match[1]),
-			Version: match[2],
-			Comment: strings.Trim(strings.TrimSpace(match[3]), "()"),
+			Name:    strings.TrimSpace(match[2]),
+			Version: strings.TrimLeft(match[3], "/"),
+			Comment: strings.Trim(strings.TrimSpace(match[4]), "()"),
 		})
 	}
 
